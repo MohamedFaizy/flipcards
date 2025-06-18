@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Game</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+        font-size: 2rem;
+        color: #333;
+      }
+
+      #controls {
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+      }
+
+      button {
+        padding: 8px 16px;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        background-color: #007acc;
+        color: white;
+
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #005fa3;
+      }
+
+      #gameboard {
+        display: flex;
+        flex-wrap: wrap;
+        width: 440px;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .boxclass {
+        width: 100px;
+        height: 100px;
+
+        position: relative;
+        cursor: pointer;
+      }
+
+      .boxclass .inner {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        position: relative;
+        
+      }
+
+      .boxclass.flipped .inner {
+        transform: rotateY(180deg);
+      }
+
+      .front,
+      .back {
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        position: absolute;
+
+        backface-visibility: hidden;
+      }
+
+      .front {
+        background-color: #00bcd4;
+        color: white;
+        font-weight: bold;
+        font-size: 24px;
+        border: 2px solid #0097a7;
+      }
+
+      .back {
+        transform: rotateY(180deg);
+      }
+
+      .back img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .matched {
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Memory Game</h1>
+    <div id="controls">Moves: <span id="moves">0</span></div>
+    <button onclick="start()">Restart</button>
+    <div id="gameboard"></div>
+
+    <script>
+      const array = [
+        "images/angualr.png",
+        "images/css.png",
+        "images/angualr.png",
+        "images/css.png",
+        "images/python.png",
+        "images/react.png",
+        "images/python.png",
+        "images/react.png",
+        "images/js.png",
+        "images/download.png",
+        "images/js.png",
+        "images/download.png",
+      ];
+
+      let shuffledarray = [];
+      let flipcard = [];
+      let matchedcard = [];
+      let moves = 0;
+      const movescounter = document.getElementById("moves");
+
+      function start() {
+        const board = document.getElementById("gameboard");
+        board.innerHTML = "";
+        shuffledarray = [...array];
+        shuffle(shuffledarray);
+        flipcard = [];
+        matchedcard = [];
+        moves = 0;
+        movescounter.innerText = moves;
+
+        shuffledarray.forEach((value, index) => {
+          const card = document.createElement("div");
+          card.classList.add("boxclass");
+          card.dataset.value = value;
+          card.dataset.index = index;
+
+          const inner = document.createElement("div");
+          inner.classList.add("inner");
+
+          const front = document.createElement("div");
+          front.classList.add("front");
+
+          const back = document.createElement("div");
+          back.classList.add("back");
+
+          inner.appendChild(front);
+          inner.appendChild(back);
+          card.appendChild(inner);
+
+          card.addEventListener("click", clicked);
+          board.appendChild(card);
+        });
+      }
+
+      function clicked(e) {
+        const card = e.currentTarget;
+        const value = card.dataset.value;
+
+        if (
+          card.classList.contains("flipped") ||
+          card.classList.contains("matched") ||
+          flipcard.length === 2
+        ) {
+          return;
+        }
+
+        const back = card.querySelector(".back");
+        //   back.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = value;
+        back.appendChild(img);
+
+        card.classList.add("flipped");
+        flipcard.push(card);
+
+        if (flipcard.length === 2) {
+          moves++;
+          movescounter.innerText = moves;
+          const [card1, card2] = flipcard;
+
+          if (card1.dataset.value === card2.dataset.value) {
+            card1.classList.add("matched");
+            card2.classList.add("matched");
+            matchedcard.push(card1, card2);
+            flipcard = [];
+
+            if (matchedcard.length === 2) {
+              setTimeout(() => {
+                alert(`Finished in ${moves} moves!`);
+                start();
+              }, 100);
+            }
+          } else {
+            setTimeout(() => {
+              card1.classList.remove("flipped");
+              card2.classList.remove("flipped");
+              card1.querySelector(".back").innerHTML = "";
+              card2.querySelector(".back").innerHTML = "";
+              flipcard = [];
+            }, 1000);
+          }
+        }
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      start();
+    </script>
+  </body>
+</html>
